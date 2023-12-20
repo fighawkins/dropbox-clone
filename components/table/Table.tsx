@@ -1,5 +1,4 @@
 "use client"
-import 
 import {
   ColumnDef,
   flexRender,
@@ -18,6 +17,10 @@ import {
 import { Button } from "../ui/button"
 import { FileType } from "@/typings"
 import { PencilIcon, TrashIcon } from "lucide-react"
+import { useAppStore } from "@/store/store"
+import { DeleteModal } from "../ui/DeleteModal"
+import RenameModal from "../ui/RenameModal"
+
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -33,6 +36,30 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
+  const [
+    setIsDeleteModalOpen,
+    setFileId,
+    setFilename,
+    setIsRenameModalOpen,
+  ] = useAppStore ((state) => [
+    state.setIsDeleteModalOpen,
+    state.setFileId,
+    state.setFilename,
+    state.setIsRenameModalOpen,
+  ]);
+
+
+
+  const openDeleteModal = (fileId: string) => {
+    setFileId(fileId);
+    setIsDeleteModalOpen(true);
+  }
+
+  const openRenameModal = (fileId:string, filename: string) => {
+    setFileId(fileId);
+    setFilename(filename);
+    setIsRenameModalOpen(true);
+  }
 
   return (
     <div className="rounded-md border">
@@ -62,12 +89,15 @@ export function DataTable<TData, TValue>({
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
               >
+                <DeleteModal />
+                <RenameModal />
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
+
                     {cell.column.id === "timestamp" ? (
                         <div className="flex flex-col">
                             <div className="text-sm">
-                                {(cell.getValue() as Date).toLocaleTimeString()}
+                                {(cell.getValue() as Date).toLocaleDateString()}
                             </div>
                         <div className="text-sm text-gray-500">
                         {(cell.getValue() as Date).toLocaleTimeString()}
@@ -77,6 +107,11 @@ export function DataTable<TData, TValue>({
                         <p 
                             onClick={() => {
                                 console.log("hello")
+                                openRenameModal(
+                                  (row.original as FileType).id,
+                                  (row.original as FileType).filename
+                                );
+
 
                             }}
                             className="underline flex items-center text-blue-500 hover:cursor-pointer"
@@ -94,10 +129,16 @@ export function DataTable<TData, TValue>({
                     <TableCell key={(row.original as FileType).id}>
                         <Button
                         variant={"outline"}
-                        onClick={() =>
-                        openDeleteModal((row.original as FileType).id) } >
-                            <TrashIcon size={20} />
-                        </Button>
+                        onClick={() =>{
+                          console.log("hello")
+                          openDeleteModal(
+                            (row.original as FileType).id,
+                          );
+
+                      }}
+                      >
+                        <TrashIcon size={20} />
+                        </Button> 
                     </TableCell>
 
               </TableRow>
